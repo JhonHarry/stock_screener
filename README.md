@@ -18,15 +18,46 @@ Built with Streamlit and the [Financial Modeling Prep](https://site.financialmod
 ## Quick start
 
 ```bash
-git clone https://github.com/<you>/valuation-screener.git
-cd valuation-screener
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
+git clone https://github.com/JhonHarry/stock_screener.git
+cd stock_screener
+python -m venv .venv
+source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env                                   # put your free FMP key in it
-streamlit run app.py
+cp .env.example .env               # Windows: copy .env.example .env, then add your key
+streamlit run app.py               # opens http://localhost:8501
 ```
 
 Get a free key at <https://site.financialmodelingprep.com/register> (no card needed, 250 calls/day).
+Requires Python 3.10+.
+
+### Configuration
+
+The FMP key is read from the first of these that is set:
+
+| Source | How |
+| --- | --- |
+| Sidebar | Paste it into the API key box in the app (current session only) |
+| Environment / `.env` | `FMP_API_KEY=your_key` |
+| Streamlit secrets | `FMP_API_KEY = "..."` in `.streamlit/secrets.toml` |
+
+Optional environment variables:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `FMP_DAILY_BUDGET` | `240` | Stop making API calls after this many per day |
+| `VS_CACHE_DB` | `data/cache.sqlite` | Location of the API response cache |
+| `VS_RESULTS_PATH` | `data/results.csv` | Location of the saved screener results |
+
+Never commit your key. `.env` is already in `.gitignore`.
+
+## How to use
+
+1. **Home** shows the top Buy-rated stocks trading 10%+ below fair value in your saved results.
+2. **Screener**: analyse a list of tickers, then filter and sort the results or apply a preset.
+3. **Company**: deep dive on one ticker with grades, fair-value models, dividends, forecast and flags.
+4. **Methodology**: how each grade and model is calculated, and its limits.
+
+Results are saved to `data/results.csv`, so the Home page fills up as you analyse more tickers.
 
 ## API budget (free plan)
 
@@ -35,9 +66,17 @@ A lean analysis costs about 7 calls, a deep one about 10. Responses are cached i
 analyse a few dozen tickers a day, and let the scheduled job slowly cover `data/universe.csv` (about 100 large caps; edit it freely).
 
 ```bash
-python -m src.cli refresh --max 25     # analyse the 25 stalest tickers
+python -m src.cli refresh --max 25     # analyse the 25 stalest tickers (--max-age-days 7 by default)
 python -m src.cli analyze KO PEP       # specific tickers
-python -m src.cli usage
+python -m src.cli usage                # today's API usage
+```
+
+Add `--deep` to `refresh` or `analyze` to also fetch prices, price targets and earnings (3 extra calls per symbol).
+
+## Tests
+
+```bash
+pytest                                 # unit and Streamlit smoke tests, no network or API key needed
 ```
 
 ## Automatic updates on GitHub
