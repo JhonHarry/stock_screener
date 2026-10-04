@@ -43,7 +43,8 @@ def test_screener_with_results(stub):
         at = AppTest.from_file(str(ROOT / page), default_timeout=60).run()
         assert not at.exception, (page, at.exception)
     at = AppTest.from_file(str(ROOT / "pages/1_Screener.py"), default_timeout=60).run()
-    at.selectbox[0].select("Dividend growth").run()
+    preset = next(s for s in at.selectbox if s.label == "Preset")
+    preset.select("Dividend growth").run()
     assert not at.exception, at.exception
 
 
